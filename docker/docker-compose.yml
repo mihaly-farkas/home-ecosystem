@@ -1,0 +1,215 @@
+networks:
+  common:
+    driver: bridge
+services:
+
+  #####################################################################################################################
+  # PostgreSQL database
+  #####################################################################################################################
+  postgres:
+    image: postgres:15
+    container_name: home-ecosystem-postgres
+    environment:
+      - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
+      - POSTGRES_DB=${HOME_ECOSYSTEM_POSTGRES_DB:-postgres}
+      - POSTGRES_USER=${HOME_ECOSYSTEM_POSTGRES_USERNAME:-home_ecosystem}
+      - POSTGRES_PASSWORD=${HOME_ECOSYSTEM_POSTGRES_PASSWORD:-CHANGE ME!!!}
+      - HOMEBOX_DB=${HOME_ECOSYSTEM_HOMEBOX_DB:-homebox}
+      - HOMEBOX_USER=${HOME_ECOSYSTEM_HOMEBOX_DB_USERNAME:-homebox}
+      - HOMEBOX_PASSWORD=${HOME_ECOSYSTEM_HOMEBOX_DB_PASSWORD:-CHANGE ME!!!}
+    ports:
+      - "5432:5432"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${HOME_ECOSYSTEM_VAR_DIR:-.var}/postgres/data:/var/lib/postgresql/data:rw
+      - ${HOME_ECOSYSTEM_TMP_DIR:-.tmp}/postgres-init:/docker-entrypoint-initdb.d:rw
+      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/homebox/postgres-init/homebox.sh:/docker-entrypoint-initdb.d/homebox.sh
+    networks:
+      - common
+    restart: unless-stopped
+
+  #####################################################################################################################
+  # Homebox
+  #####################################################################################################################
+  homebox:
+    image: ghcr.io/sysadminsmedia/homebox:main
+    container_name: home-ecosystem-homebox
+    depends_on:
+      - postgres
+    environment:
+      - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
+      - HBOX_LOG_LEVEL=info
+      - HBOX_LOG_FORMAT=text
+      - HBOX_WEB_MAX_FILE_UPLOAD=10
+      - HBOX_OPTIONS_ALLOW_ANALYTICS=${HOME_ECOSYSTEM_HOMEBOX_ALLOW_ANALYTICS:-false}
+      - HBOX_DATABASE_DRIVER=postgres
+      - HBOX_DATABASE_HOST=home-ecosystem-postgres
+      - HBOX_DATABASE_PORT=5432
+      - HBOX_DATABASE_DATABASE=${HOME_ECOSYSTEM_HOMEBOX_DB:-homebox}
+      - HBOX_DATABASE_USERNAME=${HOME_ECOSYSTEM_HOMEBOX_DB_USERNAME:-homebox}
+      - HBOX_DATABASE_PASSWORD=${HOME_ECOSYSTEM_HOMEBOX_DB_PASSWORD:-CHANGE ME!!!}
+      - HBOX_DATABASE_SSL_MODE=disable
+    # ports:
+    #   - "7745:7745"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${HOME_ECOSYSTEM_VAR_DIR:-.var}/homebox/data:/var/lib/homebox:rw
+    networks:
+      - common
+    restart: unless-stopped
+
+  #####################################################################################################################
+  # Nginx reverse proxy
+  #####################################################################################################################
+  nginx:
+    image: nginx:latest
+    container_name: home-ecosystem-nginx
+    depends_on:
+      - homebox
+    environment:
+      - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
+    volumes:
+      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/homebox/nginx/homebox.conf:/etc/nginx/conf.d/homebox.conf:ro
+      - ${HOME_ECOSYSTEM_VAR_DIR:-.var}/nginx/logs:/var/log/nginx:rw
+    networks:
+      - common
+    ports:
+      - "80:80"
+    restart: unless-stopped
+
+
+#    depends_on:
+#      - home-assistant
+#    environment:
+#      - TZ=Europe/Budapest
+#    volumes:
+#      - ${CONFIG_DIR}/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+#      - ${CONFIG_DIR}/nginx/.htpasswd:/etc/nginx/conf.d/.htpasswd:ro
+#      - ${CONFIG_DIR}/nginx/servers:/etc/nginx/conf.d/servers:ro
+#      - ${VAR_DIR}/nginx/logs:/var/log/nginx:rw
+#    networks:
+#      - common
+#    ports:
+#      - "80:8080"
+#    restart: unless-stopped
+
+
+# BACKUP OF THE FIRST EVALUATION VERSION
+#  # MQTT broker to provide a message bus for the ecosystem.
+#  # https://mosquitto.org
+#  mqtt:
+#    image: eclipse-mosquitto:latest
+#    container_name: home-ecosystem-mqtt
+#    volumes:
+#      - ${CONFIG_DIR}/mosquitto:/mosquitto/config:ro
+#      - ${CONFIG_DIR}/mosquitto/data:/mosquitto/data:rw
+#      - ${VAR_DIR}/mosquitto/logs:/mosquitto/logs:rw
+#    networks:
+#      - common
+#    ports:
+#      - "1883:1883"
+#      # - "9001:9001"
+#    restart: unless-stopped
+#
+#  # Home Assistant for home automation.
+#  # https://www.home-assistant.io
+#  home-assistant:
+#    image: ghcr.io/home-assistant/home-assistant:stable
+#    container_name: home-ecosystem-home-assistant
+#    depends_on:
+#      - mqtt
+#    environment:
+#      - TZ=Europe/Budapest
+#    volumes:
+#      - ${VAR_DIR}/home-assistant:/config:rw
+#      - ${CONFIG_DIR}/home-assistant/configuration.yml:/config/configuration.yaml:ro
+#      - /etc/localtime:/etc/localtime:ro
+#    networks:
+#      - common
+#    # ports:
+#    #   - "8123:8123"
+#    restart: unless-stopped
+#
+#  # AppDaemon for advanced automation.
+#  # https://appdaemon.readthedocs.io
+#  app-daemon:
+#    image: acockburn/appdaemon:latest
+#    container_name: home-ecosystem-app-daemon
+#    volumes:
+#      # Mounting the configuration directory, just to prepare the structure.
+#      # These directories mounted with read/write permissions, so we can mount multiple read-only directories inside
+#      # them later.
+#      - ${TMP_DIR}/app-daemon/conf:/conf:rw
+#      - ${TMP_DIR}/app-daemon/conf/apps:/conf/apps:rw
+#
+#      # Configuration files and directories
+#      - ${CONFIG_DIR}/app-daemon/apps/apps.yml:/conf/apps/apps.yaml:ro
+#      - ${CONFIG_DIR}/app-daemon/compiled:/conf/compiled:ro
+#      - ${CONFIG_DIR}/app-daemon/dashboards:/conf/dashboards:ro
+#      - ${CONFIG_DIR}/app-daemon/namespaces:/conf/namespaces:ro
+#      - ${CONFIG_DIR}/app-daemon/www:/conf/www:ro
+#      - ${CONFIG_DIR}/app-daemon/appdaemon.yml:/conf/appdaemon.yaml:ro
+#      - ${CONFIG_DIR}/app-daemon/secrets.yml:/conf/secrets.yaml:ro
+#
+#      # Local time configuration
+#      - /etc/localtime:/etc/localtime:ro
+#
+#      #################################################################################################################
+#      # Custom Python applications
+#      #################################################################################################################
+#
+#      # MQTT bridge
+#      - ${PROJECT_DIR}/app-daemon/src/mqtt_bridge:/conf/apps/mqtt_bridge:ro
+#
+#      # MQTT message logger | Application
+#      - ${PROJECT_DIR}/app-daemon/src/mqtt_logger:/conf/apps/mqtt_logger:ro
+#      # MQTT message logger | Target directory for the logs
+#      - ${VAR_DIR}/app-daemon/logs/mqtt:/var/log/mqtt:rw
+#
+#      #################################################################################################################
+#
+#    environment:
+#      - TZ=Europe/Budapest
+#    depends_on:
+#      - home-assistant
+#    restart: unless-stopped
+#    networks:
+#      - common
+#    # ports:
+#    #   - "5050:5050"
+#
+#  # Nginx reverse proxy to provide a single entry point for the ecosystem.
+#  # https://www.nginx.com
+#  nginx:
+#    image: nginx:latest
+#    container_name: home-ecosystem-nginx
+#    depends_on:
+#      - home-assistant
+#    environment:
+#      - TZ=Europe/Budapest
+#    volumes:
+#      - ${CONFIG_DIR}/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+#      - ${CONFIG_DIR}/nginx/.htpasswd:/etc/nginx/conf.d/.htpasswd:ro
+#      - ${CONFIG_DIR}/nginx/servers:/etc/nginx/conf.d/servers:ro
+#      - ${VAR_DIR}/nginx/logs:/var/log/nginx:rw
+#    networks:
+#      - common
+#    ports:
+#      - "80:8080"
+#    restart: unless-stopped
+#
+#  # Ngrok to expose the ecosystem in a static URL for external access.
+#  # https://ngrok.com
+#  ngrok:
+#    image: ngrok/ngrok:latest
+#    container_name: home-ecosystem-ngrok
+#    depends_on:
+#      - nginx
+#    environment:
+#      - NGROK_AUTHTOKEN=308bhNAcu2Omd3kujZukKvydWMC_7FXw6aF4Yt7sHe3zhcLdu
+#    command: http --url=cardinal-chief-hopelessly.ngrok-free.app home-ecosystem-nginx:10080
+#    networks:
+#      - common
+#    # ports:
+#    #   - "4040:4040"
+#    restart: unless-stopped

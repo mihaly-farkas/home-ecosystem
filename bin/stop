@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+script_dir="$(dirname "$(readlink -f "$0")")"
+project_dir="$(realpath "${script_dir}/..")"
+
+cd "${project_dir}" || exit 1
+
+source .env
+
+docker compose \
+  --project-name "${HOME_ECOSYSTEM_PROJECT_NAME}" \
+  down \
+  --remove-orphans

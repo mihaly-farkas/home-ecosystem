@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+
+# shellcheck disable=SC2129
+# shellcheck disable=SC2153
+
+script_dir="$(dirname "$(readlink -f "$0")")"
+project_dir="$(realpath "${script_dir}/..")"
+
+cd "${project_dir}" || exit 1
+
+# Create a .env file if it doesn't exist
+if [ ! -f .env ]; then
+  echo "Creating .env file..."
+  echo "######################################################################################################" > .env
+  echo "Home Ecosystem Environment Variables" >> .env
+  echo "######################################################################################################" >> .env
+  echo >> .env
+  echo "# The Docker Compose project name" >> .env
+  echo "HOME_ECOSYSTEM_PROJECT_NAME=home-ecosystem" >> .env
+  echo >> .env
+  echo "# The project directories" >> .env
+  echo "HOME_ECOSYSTEM_PROJECT_DIR=${project_dir}" >> .env
+  echo "HOME_ECOSYSTEM_CONFIG_DIR=${project_dir}/etc" >> .env
+  echo "HOME_ECOSYSTEM_VAR_DIR=${project_dir}/.var" >> .env
+  echo >> .env
+  echo "# Timezone" >> .env
+  echo "HOME_ECOSYSTEM_TIMEZONE=UTC" >> .env
+  echo >> .env
+  echo "# Postgres database configuration" >> .env
+  echo "HOME_ECOSYSTEM_POSTGRES_DB=postgres" >> .env
+  echo "HOME_ECOSYSTEM_POSTGRES_USER=home_ecosystem" >> .env
+  echo "HOME_ECOSYSTEM_POSTGRES_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32)" >> .env
+  echo >> .env
+  echo "# Homebox database configuration" >> .env
+  echo "HOME_ECOSYSTEM_HOMEBOX_DB=homebox" >> .env
+  echo "HOME_ECOSYSTEM_HOMEBOX_USER=homebox" >> .env
+  echo "HOME_ECOSYSTEM_HOMEBOX_DB_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32)" >> .env
+  echo >> .env
+  echo "# Allow Homebox to collect analytics data" >> .env
+  echo "HOME_ECOSYSTEM_HOMEBOX_ALLOW_ANALYTICS=false" >> .env
+fi
+
+source .env
+HOME_ECOSYSTEM_TMP_DIR=$(mktemp -d)
+export HOME_ECOSYSTEM_TMP_DIR
+mkdir -p "${HOME_ECOSYSTEM_TMP_DIR}/postgres-init"
+
+mkdir -p "${HOME_ECOSYSTEM_VAR_DIR}/postgres/data"
+mkdir -p "${HOME_ECOSYSTEM_VAR_DIR}/homebox/data"
+mkdir -p "${HOME_ECOSYSTEM_VAR_DIR}/nginx/logs"
+
+echo "---------------------------"
+echo "Starting Home Ecosystem..."
+echo "---------------------------"
+echo
+echo "HOME_ECOSYSTEM_PROJECT_NAME:            ${HOME_ECOSYSTEM_PROJECT_NAME}"
+echo
+echo "HOME_ECOSYSTEM_PROJECT_DIR:             ${HOME_ECOSYSTEM_PROJECT_DIR}"
+echo "HOME_ECOSYSTEM_CONFIG_DIR:              ${HOME_ECOSYSTEM_CONFIG_DIR}"
+echo "HOME_ECOSYSTEM_VAR_DIR:                 ${HOME_ECOSYSTEM_VAR_DIR}"
+echo "HOME_ECOSYSTEM_TMP_DIR:                 ${HOME_ECOSYSTEM_TMP_DIR}"
+echo
+echo "HOME_ECOSYSTEM_TIMEZONE:                ${HOME_ECOSYSTEM_TIMEZONE}"
+echo
+echo "HOME_ECOSYSTEM_POSTGRES_DB:             ${HOME_ECOSYSTEM_POSTGRES_DB}"
+echo "HOME_ECOSYSTEM_POSTGRES_USER:           ${HOME_ECOSYSTEM_POSTGRES_USER}"
+echo "HOME_ECOSYSTEM_POSTGRES_PASSWORD:       $(printf '%s' "${HOME_ECOSYSTEM_POSTGRES_PASSWORD}" | sed 's/./*/g')"
+echo
+echo "HOME_ECOSYSTEM_HOMEBOX_DB:              ${HOME_ECOSYSTEM_HOMEBOX_DB}"
+echo "HOME_ECOSYSTEM_HOMEBOX_USER:            ${HOME_ECOSYSTEM_HOMEBOX_USER}"
+echo "HOME_ECOSYSTEM_HOMEBOX_DB_PASSWORD:     $(printf '%s' "${HOME_ECOSYSTEM_HOMEBOX_DB_PASSWORD}" | sed 's/./*/g')"
+echo
+echo "HOME_ECOSYSTEM_HOMEBOX_ALLOW_ANALYTICS: ${HOME_ECOSYSTEM_HOMEBOX_ALLOW_ANALYTICS}"
+echo
+
+chmod +x "${HOME_ECOSYSTEM_PROJECT_DIR}/bin/"*
+chmod +x "${HOME_ECOSYSTEM_PROJECT_DIR}/homebox/postgres-init/homebox.sh"
+
+set -x
+docker compose \
+  --project-name "${HOME_ECOSYSTEM_PROJECT_NAME}" \
+  --file "${HOME_ECOSYSTEM_PROJECT_DIR}/docker/docker-compose.yml" \
+  --env-file "${HOME_ECOSYSTEM_PROJECT_DIR}/.env" \
+  up \
+  --detach \
+  --force-recreate
+{ set +x; } 2>/dev/null
+
+
+
+
+
+#lib_dir="/Users/viking/IdeaProjects/home-ecosystem"
+#
+#script_dir="$(dirname "$(readlink -f "$0")")"
+#project_dir="$(realpath "${script_dir}/../..")"
+#config_dir="$(realpath "${script_dir}/../etc")"
+#var_dir="$(realpath "${project_dir}/.var")"
+#tmp_dir=$(mktemp -d)
+#
+#mkdir -p "${tmp_dir}/app-daemon/conf/apps"
+#
+#PROJECT_DIR="$project_dir"
+#CONFIG_DIR="$config_dir"
+#VAR_DIR="$var_dir"
+#TMP_DIR="$tmp_dir"
+#
+#echo "Starting Home Ecosystem...."
+#echo
+#echo "Project directory:   ${project_dir}"
+#echo "Config directory:    ${config_dir}"
+#echo "Var directory:       ${var_dir}"
+#echo "Temporary directory: ${tmp_dir}"
+#echo
+#
+#set -x
+#docker compose \
+#  --project-name "home-ecosystem" \
+#  --file "${lib_dir}/docker-compose.yml" \
+#  up \
+#  --detach \
+#  --force-recreate
+#{ set +x; } 2>/dev/null
+#
