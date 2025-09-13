@@ -8,56 +8,6 @@ project_dir="$(realpath "${script_dir}/..")"
 
 cd "${project_dir}" || exit 1
 
-# Create a .env file if it doesn't exist
-if [ ! -f .env ]; then
-  echo "Creating .env file..."
-  echo "######################################################################################################" > .env
-  echo "# Generic settings" >> .env
-  echo "######################################################################################################" >> .env
-  echo >> .env
-  echo "# The Docker Compose project name" >> .env
-  echo "HOME_ECOSYSTEM_PROJECT_NAME=home-ecosystem" >> .env
-  echo >> .env
-  echo "# The project directories" >> .env
-  echo "HOME_ECOSYSTEM_PROJECT_DIR=${project_dir}" >> .env
-  echo "HOME_ECOSYSTEM_CONFIG_DIR=${project_dir}/etc" >> .env
-  echo "HOME_ECOSYSTEM_VAR_DIR=${project_dir}/.var" >> .env
-  echo >> .env
-  echo "# Timezone" >> .env
-  echo "HOME_ECOSYSTEM_TIMEZONE=UTC" >> .env
-  echo >> .env
-  echo "#######################################################################################################################" >> .env
-  echo "# Postgres database configuration" >> .env
-  echo "#######################################################################################################################" >> .env
-  echo >> .env
-  echo "HOME_ECOSYSTEM_POSTGRES_DB=postgres" >> .env
-  echo "HOME_ECOSYSTEM_POSTGRES_USER=home_ecosystem" >> .env
-  echo "HOME_ECOSYSTEM_POSTGRES_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32)" >> .env
-  echo >> .env
-  echo "#######################################################################################################################" >> .env
-  echo "# Homebox configuration" >> .env
-  echo "#######################################################################################################################" >> .env
-  echo >> .env
-  echo "# Database configuration for Homebox" >> .env
-  echo "HOME_ECOSYSTEM_HOMEBOX_DB=homebox" >> .env
-  echo "HOME_ECOSYSTEM_HOMEBOX_USER=homebox" >> .env
-  echo "HOME_ECOSYSTEM_HOMEBOX_DB_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32)" >> .env
-  echo >> .env
-  echo "# Allow Homebox to collect analytics data" >> .env
-  echo "HOME_ECOSYSTEM_HOMEBOX_ALLOW_ANALYTICS=false" >> .env
-  echo >> .env
-  echo "#######################################################################################################################" >> .env
-  echo "# Plex Media Server configuration" >> .env
-  echo "#######################################################################################################################" >> .env
-  echo >> .env
-  echo "# The media files directory to be mounted into the Plex container" >> .env
-  echo "HOME_ECOSYSTEM_PLEX_MEDIA_DIR=~/Movies" >> .env
-  echo >> .env
-  echo "# A temporary claim token to register the server with your Plex account" >> .env
-  echo "# Get a token from https://www.plex.tv/claim/" >> .env
-  echo "HOME_ECOSYSTEM_PLEX_CLAIM=" >> .env
-fi
-
 # Load environment variables from .env file
 source .env
 

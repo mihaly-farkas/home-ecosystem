@@ -30,11 +30,12 @@ build/
 # General
 .bak/
 .cache/
-.env
 .generated/
 .local/
 .logs/
 .tmp/
 .tmp-*/
 .var/
+.env
+!examples/.env
 *@tmp
