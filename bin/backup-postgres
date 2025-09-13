@@ -18,7 +18,7 @@ mkdir -p "$backup_dir"
 timestamp=$(date '+%Y-%m-%d_%H-%M-%S')
 
 # Dump the PostgreSQL database to a file
-outfile="$backup_dir/pgdump_${timestamp}_${HOME_ECOSYSTEM_POSTGRES_DB}.sql"
+outfile="$backup_dir/pgdump.${timestamp}.${HOME_ECOSYSTEM_POSTGRES_DB}.schema.sql"
 docker exec -i home-ecosystem-postgres pg_dump \
   --username="${HOME_ECOSYSTEM_POSTGRES_USER}" \
   --dbname="${HOME_ECOSYSTEM_POSTGRES_DB}" \
@@ -26,9 +26,22 @@ docker exec -i home-ecosystem-postgres pg_dump \
   --no-owner \
   --no-privileges \
   --no-password \
+  --schema-only \
   > "$outfile"
 
-outfile="$backup_dir/pgdump_${timestamp}_${HOME_ECOSYSTEM_HOMEBOX_DB}.sql"
+outfile="$backup_dir/pgdump.${timestamp}.${HOME_ECOSYSTEM_POSTGRES_DB}.data.sql"
+docker exec -i home-ecosystem-postgres pg_dump \
+  --username="${HOME_ECOSYSTEM_POSTGRES_USER}" \
+  --dbname="${HOME_ECOSYSTEM_POSTGRES_DB}" \
+  --format=plain \
+  --no-owner \
+  --no-privileges \
+  --no-password \
+  --data-only \
+  --column-inserts \
+  > "$outfile"
+
+outfile="$backup_dir/pgdump.${timestamp}.${HOME_ECOSYSTEM_HOMEBOX_DB}.schema.sql"
 docker exec -i home-ecosystem-postgres pg_dump \
   --username="${HOME_ECOSYSTEM_POSTGRES_USER}" \
   --dbname="${HOME_ECOSYSTEM_HOMEBOX_DB}" \
@@ -36,5 +49,18 @@ docker exec -i home-ecosystem-postgres pg_dump \
   --no-owner \
   --no-privileges \
   --no-password \
+  --schema-only \
+  > "$outfile"
+
+outfile="$backup_dir/pgdump.${timestamp}.${HOME_ECOSYSTEM_HOMEBOX_DB}.data.sql"
+docker exec -i home-ecosystem-postgres pg_dump \
+  --username="${HOME_ECOSYSTEM_POSTGRES_USER}" \
+  --dbname="${HOME_ECOSYSTEM_HOMEBOX_DB}" \
+  --format=plain \
+  --no-owner \
+  --no-privileges \
+  --no-password \
+  --data-only \
+  --column-inserts \
   > "$outfile"
 
