@@ -7,6 +7,23 @@ A personal, self-hosted home server ecosystem – built for my needs and fun.
 - [HomeBox](https://homebox.software/en/) – Manage and track your home inventory.
 - [Plex Media Server](https://www.plex.tv) – Stream and organize your media library.
 
+## 🎯 Coming Soon...
+
+- [OpenSearch](https://opensearch.org) – Centralize, search, and analyze your logs and data.
+- [Home Assistant](https://www.home-assistant.io) – Automate and control your smart home and IoT devices.
+- [AppDaemon](https://appdaemon.readthedocs.io/en/latest/) – Extend Home Assistant with custom apps.
+- [Grafana](https://grafana.com) – Visualize and monitor your data.
+
+## 🌟 Future Plans and Ideas
+
+- _Backup & archival tools_ – Securely store your data with private, self-hosted backups.
+- _Synchronization solutions_ – Envision seamless connections across major cloud ecosystems such as
+  Apple iCloud, Google, and Microsoft Office.
+- _Personal finance management tool_ – Explore ways to track your financial status, manage accounts, and organize 
+  spending.
+- _Personal weather station_ – Measure local temperature, rainfall, wind, and other conditions; share your data with 
+  larger weather networks or platforms.
+
 ## 🛠️ Technical Overview
 
 The platform is fully containerized using Docker, making it easy to deploy and manage as a single unit. It relies on
