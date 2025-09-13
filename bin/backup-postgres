@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+set -e
+
+script_dir="$(dirname "$(readlink -f "$0")")"
+project_dir="$(realpath "${script_dir}/..")"
+
+cd "${project_dir}" || exit 1
+
+# Load environment variables from .env file
+source .env
+
+# Ensure output directory exists
+backup_dir="${HOME_ECOSYSTEM_VAR_DIR}/backups/postgres"
+mkdir -p "$backup_dir"
+
+# Timestamp for filename (YYYY-MM-DD_HH-MM-SS)
+timestamp=$(date '+%Y-%m-%d_%H-%M-%S')
+
+# Dump the PostgreSQL database to a file
+outfile="$backup_dir/pgdump_${timestamp}_${HOME_ECOSYSTEM_POSTGRES_DB}.sql"
+docker exec -i home-ecosystem-postgres pg_dump \
+  --username="${HOME_ECOSYSTEM_POSTGRES_USER}" \
+  --dbname="${HOME_ECOSYSTEM_POSTGRES_DB}" \
+  --format=plain \
+  --no-owner \
+  --no-privileges \
+  --no-password \
+  > "$outfile"
+
+outfile="$backup_dir/pgdump_${timestamp}_${HOME_ECOSYSTEM_HOMEBOX_DB}.sql"
+docker exec -i home-ecosystem-postgres pg_dump \
+  --username="${HOME_ECOSYSTEM_POSTGRES_USER}" \
+  --dbname="${HOME_ECOSYSTEM_HOMEBOX_DB}" \
+  --format=plain \
+  --no-owner \
+  --no-privileges \
+  --no-password \
+  > "$outfile"
+
