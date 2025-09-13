@@ -12,10 +12,10 @@ environment.
 
 - [HomeBox](https://homebox.software/en/) – Manage and track your home inventory.
 - [Plex Media Server](https://www.plex.tv) – Stream and organize your media library.
+- [OpenSearch](https://opensearch.org) – Centralize, search, and analyze your logs and data.
 
 ## 🎯 Coming Soon...
 
-- [OpenSearch](https://opensearch.org) – Centralize, search, and analyze your logs and data.
 - [Home Assistant](https://www.home-assistant.io) – Automate and control your smart home and IoT devices.
 - [AppDaemon](https://appdaemon.readthedocs.io/en/latest/) – Extend Home Assistant with custom apps.
 - [Grafana](https://grafana.com) – Visualize and monitor your data.
@@ -81,7 +81,8 @@ started and run effortlessly, providing a cohesive home server environment.
    ```text
    127.0.0.1       homebox.home.local
    127.0.0.1       plex.home.local
-    ```
+   127.0.0.1       opensearch.home.local
+   ```
 
 
 ## 🚀 Usage
@@ -96,6 +97,7 @@ After the containers are up and running, you can access the services using the f
 
 - HomeBox: http://homebox.home.local
 - Plex Media Server: http://plex.home.local
+- OpenSearch: http://opensearch.home.local
 
 ## ⚖️ License
 

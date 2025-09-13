@@ -23,7 +23,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ${HOME_ECOSYSTEM_VAR_DIR:-.var}/postgres/data:/var/lib/postgresql/data:rw
       - ${HOME_ECOSYSTEM_TMP_DIR:-.tmp}/postgres-init:/docker-entrypoint-initdb.d:rw
-      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/homebox/postgres-init/homebox.sh:/docker-entrypoint-initdb.d/homebox.sh
+      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/apps/homebox/postgres-init/homebox.sh:/docker-entrypoint-initdb.d/homebox.sh
     networks:
       - common
     restart: unless-stopped
@@ -88,6 +88,52 @@ services:
       - "32414:32414/udp"
     restart: unless-stopped
 
+
+  #####################################################################################################################
+  # OpenSearch
+  #####################################################################################################################
+  opensearch:
+    image: opensearchproject/opensearch:2.14.0
+    container_name: home-ecosystem-opensearch
+    environment:
+      - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
+      - discovery.type=single-node
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+      - bootstrap.memory_lock=true
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${HOME_ECOSYSTEM_OPENSEARCH_ADMIN_PASSWORD}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ${HOME_ECOSYSTEM_VAR_DIR:-.var}/opensearch/data:/usr/share/opensearch/data:rw
+    networks:
+      - common
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    restart: unless-stopped
+
+
+  #####################################################################################################################
+  # OpenSearch Dashboards
+  #####################################################################################################################
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.14.0
+    container_name: home-ecosystem-opensearch-dashboards
+    depends_on:
+      - opensearch
+    environment:
+      - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
+      - OPENSEARCH_HOSTS=https://home-ecosystem-opensearch:9200
+      - OPENSEARCH_USERNAME=admin
+      - OPENSEARCH_PASSWORD=${HOME_ECOSYSTEM_OPENSEARCH_ADMIN_PASSWORD}
+    ports:
+      - "5601:5601"
+    networks:
+      - common
+    restart: unless-stopped
+
   #####################################################################################################################
   # Nginx reverse proxy
   #####################################################################################################################
@@ -97,11 +143,13 @@ services:
     depends_on:
       - homebox
       - plex
+      - opensearch-dashboards
     environment:
       - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
     volumes:
-      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/homebox/nginx/homebox.conf:/etc/nginx/conf.d/homebox.conf:ro
-      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/plex/nginx/plex.conf:/etc/nginx/conf.d/plex.conf:ro
+      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/apps/homebox/nginx/homebox.conf:/etc/nginx/conf.d/homebox.conf:ro
+      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/apps/plex/nginx/plex.conf:/etc/nginx/conf.d/plex.conf:ro
+      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/apps/opensearch/nginx/opensearch.conf:/etc/nginx/conf.d/opensearch.conf:ro
       - ${HOME_ECOSYSTEM_VAR_DIR:-.var}/nginx/logs:/var/log/nginx:rw
     networks:
       - common

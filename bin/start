@@ -25,6 +25,9 @@ mkdir -p "${HOME_ECOSYSTEM_PLEX_MEDIA_DIR}"
 mkdir -p "${HOME_ECOSYSTEM_VAR_DIR}/plex/config"
 mkdir -p "${HOME_ECOSYSTEM_VAR_DIR}/plex/transcode"
 
+# Create directories for OpenSearch
+mkdir -p "${HOME_ECOSYSTEM_VAR_DIR}/opensearch/data"
+
 # Create directories for Nginx
 mkdir -p "${HOME_ECOSYSTEM_VAR_DIR}/nginx/logs"
 
@@ -57,7 +60,7 @@ echo "HOME_ECOSYSTEM_PLEX_CLAIM:              $(printf '%s' "${HOME_ECOSYSTEM_PL
 echo
 
 chmod +x "${HOME_ECOSYSTEM_PROJECT_DIR}/bin/"*
-chmod +x "${HOME_ECOSYSTEM_PROJECT_DIR}/homebox/postgres-init/homebox.sh"
+chmod +x "${HOME_ECOSYSTEM_PROJECT_DIR}/apps/homebox/postgres-init/homebox.sh"
 
 set -x
 docker compose \
