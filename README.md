@@ -1,6 +1,6 @@
 # Home Ecosystem
 
-A personal, self-hosted home server ecosystem – built for my needs and fun.
+A personal, self-hosted home server stack – built for my needs and fun.
 
 ## ⚠️ Disclaimer
 
