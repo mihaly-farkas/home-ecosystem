@@ -8,11 +8,19 @@ This project is a personal hobby setup created for my own home environment. It i
 experimental or incomplete features. Use it at your own risk, and adapt it carefully if you plan to run it in your own
 environment.
 
-## 🖥️ Features
+## 🖥️ Hosted Applications
 
 - [HomeBox](https://homebox.software/en/) – Manage and track your home inventory.
 - [Plex Media Server](https://www.plex.tv) – Stream and organize your media library.
 - [OpenSearch](https://opensearch.org) – Centralize, search, and analyze your logs and data.
+
+## 📦 Additional Features
+
+- [PostgreSQL](https://www.postgresql.org) – A robust relational database for HomeBox and other applications.
+- [FluentBit](https://www.elastic.co/beats/filebeat) – Collects Docker container logs and forwards them to OpenSearch
+  for centralized log management.
+- [nginx](https://www.nginx.com) – A HTTP server acting as a reverse proxy to route traffic to the applications
+  running on different ports based on the requested local domain (e.g., `homebox.home.local`, `plex.home.local`).
 
 ## 🎯 Coming Soon...
 
@@ -32,14 +40,15 @@ environment.
 
 ## 🏗️ Architecture
 
-The platform is fully containerized using Docker, making it easy to deploy and manage as a single unit. It relies on
-open-source and free solutions, ensuring flexibility and transparency. With minimal configuration, the system can be
-started and run effortlessly, providing a cohesive home server environment.
+The platform is fully containerized using Docker Compose, making it easy to deploy and manage as a single unit. It 
+relies on open-source and free solutions, ensuring flexibility and transparency. With minimal configuration, the system 
+can be started and run effortlessly, providing a cohesive home server environment.
 
 ### Components Diagram
 
+<!--suppress HtmlDeprecatedAttribute -->
 <p align="center">
-  <img src="https://img.plantuml.biz/plantuml/png/TL9DQyCm3BtdLuYSjaD6QLCAevYoxR33DZhQMmd3gqKQsiJ6zaP6wN-VvARveDHW4qbFxptBMJWlhVyf3r5qTm_nwtgzZ44wCDhwBuuYe1KPkTtB725-qTizMdZMfT4EOpXItUiS_OwonoYWDnzvKTKPpESMVz4wJ8pLzPyG4CejDIGGa9GzqHuoCP8TFSvcwRHdIPVufEkpJXEmaZH6Y1xzkK8A_OQET39EHwEETNd0XfA_u1rL8M65bjnd30hPAv6GJQ1j3aUhlDaLIc6LgKHS82UUJxWoK79WzAhGjDmOoZITZ3lxz1IvHTVSG3jFqUhpZUUYf9VVqc7VTmDdgGxSFSB5qeCOifDxNWki5Fyl_m00" alt="Component Diagram" />
+  <img src="./docs/component-diagram.png" alt="Component Diagram" />
 </p>
 
 ## 🔧 Setup Instructions
@@ -57,13 +66,13 @@ started and run effortlessly, providing a cohesive home server environment.
    git clone https://github.com/mihaly-farkas/home-ecosystem.git
    cd home-ecosystem
    ```
-   
+
 2. Set up environment variables by copying the example file and modifying it as needed:
 
    ```bash
     cp .env.example .env
    ```
-   
+
    Be aware that Plex requires a temporary claim token for the initial setup.
    See the instructions in the `.env` file comments.
 
@@ -84,10 +93,9 @@ started and run effortlessly, providing a cohesive home server environment.
    127.0.0.1       opensearch.home.local
    ```
 
-
 ## 🚀 Usage
 
-Start the Home Ecosystem stack with the following command:
+### Start the Home Ecosystem stack
 
 ```bash
 bin/start
@@ -98,6 +106,20 @@ After the containers are up and running, you can access the services using the f
 - HomeBox: http://homebox.home.local
 - Plex Media Server: http://plex.home.local
 - OpenSearch: http://opensearch.home.local
+
+### Stop the Home Ecosystem stack
+
+```bash
+bin/stop
+```
+
+### Backup PostgreSQL Database
+
+```bash
+bin/backup-postgres
+```
+
+[//]: # (TODO - Write a script to restore the PostgreSQL database from a backup. Truncate the tables, disable all triggers, etc...)
 
 ## ⚖️ License
 

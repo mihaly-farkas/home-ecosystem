@@ -33,37 +33,11 @@ mkdir -p "${HOME_ECOSYSTEM_VAR_DIR}/opensearch/data"
 # Create directories for Nginx
 mkdir -p "${HOME_ECOSYSTEM_VAR_DIR}/nginx/logs"
 
-
-echo "---------------------------"
-echo "Starting Home Ecosystem..."
-echo "---------------------------"
-echo
-echo "HOME_ECOSYSTEM_PROJECT_NAME:            ${HOME_ECOSYSTEM_PROJECT_NAME}"
-echo
-echo "HOME_ECOSYSTEM_PROJECT_DIR:             ${HOME_ECOSYSTEM_PROJECT_DIR}"
-echo "HOME_ECOSYSTEM_CONFIG_DIR:              ${HOME_ECOSYSTEM_CONFIG_DIR}"
-echo "HOME_ECOSYSTEM_VAR_DIR:                 ${HOME_ECOSYSTEM_VAR_DIR}"
-echo "HOME_ECOSYSTEM_TMP_DIR:                 ${HOME_ECOSYSTEM_TMP_DIR}"
-echo
-echo "HOME_ECOSYSTEM_TIMEZONE:                ${HOME_ECOSYSTEM_TIMEZONE}"
-echo
-echo "HOME_ECOSYSTEM_POSTGRES_DB:             ${HOME_ECOSYSTEM_POSTGRES_DB}"
-echo "HOME_ECOSYSTEM_POSTGRES_USER:           ${HOME_ECOSYSTEM_POSTGRES_USER}"
-echo "HOME_ECOSYSTEM_POSTGRES_PASSWORD:       $(printf '%s' "${HOME_ECOSYSTEM_POSTGRES_PASSWORD}" | sed 's/./*/g')"
-echo
-echo "HOME_ECOSYSTEM_HOMEBOX_DB:              ${HOME_ECOSYSTEM_HOMEBOX_DB}"
-echo "HOME_ECOSYSTEM_HOMEBOX_USER:            ${HOME_ECOSYSTEM_HOMEBOX_USER}"
-echo "HOME_ECOSYSTEM_HOMEBOX_DB_PASSWORD:     $(printf '%s' "${HOME_ECOSYSTEM_HOMEBOX_DB_PASSWORD}" | sed 's/./*/g')"
-echo
-echo "HOME_ECOSYSTEM_HOMEBOX_ALLOW_ANALYTICS: ${HOME_ECOSYSTEM_HOMEBOX_ALLOW_ANALYTICS}"
-echo
-echo "HOME_ECOSYSTEM_PLEX_MEDIA_DIR:          ${HOME_ECOSYSTEM_PLEX_MEDIA_DIR}"
-echo "HOME_ECOSYSTEM_PLEX_CLAIM:              $(printf '%s' "${HOME_ECOSYSTEM_PLEX_CLAIM}" | sed 's/./*/g')"
-echo
-
+# Set execute permissions on scripts
 chmod +x "${HOME_ECOSYSTEM_PROJECT_DIR}/bin/"*
 chmod +x "${HOME_ECOSYSTEM_PROJECT_DIR}/apps/homebox/postgres-init/homebox.sh"
 
+# Start the Docker containers
 set -x
 docker compose \
   --project-name "${HOME_ECOSYSTEM_PROJECT_NAME}" \

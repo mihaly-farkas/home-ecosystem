@@ -4,11 +4,87 @@ networks:
 services:
 
   #####################################################################################################################
+  # OpenSearch
+  #####################################################################################################################
+  opensearch:
+    # Use the command below to list available versions:
+    # curl -s "https://registry.hub.docker.com/v2/repositories/opensearchproject/opensearch/tags/?page_size=100" | jq -r '.results[].name' | sort -r
+    image: opensearchproject/opensearch:3.2.0
+    container_name: home-ecosystem-opensearch
+    environment:
+      - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
+      - discovery.type=single-node
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+      - bootstrap.memory_lock=true
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${HOME_ECOSYSTEM_OPENSEARCH_ADMIN_PASSWORD}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ${HOME_ECOSYSTEM_VAR_DIR:-.var}/opensearch/data:/usr/share/opensearch/data:rw
+    networks:
+      - common
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    restart: unless-stopped
+
+  #####################################################################################################################
+  # FluentBit
+  #####################################################################################################################
+  fluentbit:
+    # Use the command below to list available versions:
+    # curl -s "https://registry.hub.docker.com/v2/repositories/fluent/fluent-bit/tags/?page_size=100" | jq -r '.results[].name' | sort -r
+    image: fluent/fluent-bit:4.0.9
+    container_name: home-ecosystem-fluentbit
+    depends_on:
+      - opensearch
+    environment:
+      - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
+      - OPENSEARCH_PASSWORD=${HOME_ECOSYSTEM_OPENSEARCH_ADMIN_PASSWORD}
+    volumes:
+      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/apps/fluentbit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
+      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/apps/fluentbit/scripts:/fluent-bit/etc/scripts:ro
+    networks:
+      - common
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    restart: unless-stopped
+
+  #####################################################################################################################
+  # OpenSearch Dashboards
+  #####################################################################################################################
+  opensearch-dashboards:
+    # Use the command below to list available versions:
+    # curl -s "https://registry.hub.docker.com/v2/repositories/opensearchproject/opensearch-dashboards/tags/?page_size=100" | jq -r '.results[].name' | sort -r
+    image: opensearchproject/opensearch-dashboards:3.2.0
+    container_name: home-ecosystem-opensearch-dashboards
+    depends_on:
+      - fluentbit
+      - opensearch
+    environment:
+      - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
+      - OPENSEARCH_HOSTS=https://home-ecosystem-opensearch:9200
+      - OPENSEARCH_USERNAME=admin
+      - OPENSEARCH_PASSWORD=${HOME_ECOSYSTEM_OPENSEARCH_ADMIN_PASSWORD}
+    ports:
+      - "5601:5601"
+    networks:
+      - common
+    restart: unless-stopped
+
+  #####################################################################################################################
   # PostgreSQL database
   #####################################################################################################################
   postgres:
-    image: postgres:15
+    # Use the command below to list available versions:
+    # curl -s "https://registry.hub.docker.com/v2/repositories/library/postgres/tags/?page_size=100" | jq -r '.results[].name' |  sort -r
+    image: postgres:17.6
     container_name: home-ecosystem-postgres
+    depends_on:
+      - fluentbit
     environment:
       - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
       - POSTGRES_DB=${HOME_ECOSYSTEM_POSTGRES_DB:-postgres}
@@ -26,13 +102,20 @@ services:
       - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/apps/homebox/postgres-init/homebox.sh:/docker-entrypoint-initdb.d/homebox.sh
     networks:
       - common
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: home-ecosystem-postgres
     restart: unless-stopped
 
   #####################################################################################################################
   # Homebox
   #####################################################################################################################
   homebox:
-    image: ghcr.io/sysadminsmedia/homebox:main
+    # Use the command below to list available versions:
+    # curl -s "https://registry.hub.docker.com/v2/repositories/sysadminsmedia/homebox/tags/?page_size=100" | jq -r '.results[].name' | sort -r
+    image: sysadminsmedia/homebox:0.21.0
     container_name: home-ecosystem-homebox
     depends_on:
       - postgres
@@ -56,13 +139,20 @@ services:
       - ${HOME_ECOSYSTEM_VAR_DIR:-.var}/homebox/data:/var/lib/homebox:rw
     networks:
       - common
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: home-ecosystem-homebox
     restart: unless-stopped
 
   #####################################################################################################################
   # Plex Media Server
   #####################################################################################################################
   plex:
-    image: lscr.io/linuxserver/plex:latest
+    # Use the command below to list available versions:
+    # curl -s "https://registry.hub.docker.com/v2/repositories/linuxserver/plex/tags/?page_size=100" | jq -r '.results[].name' | sort -r
+    image: linuxserver/plex:1.41.9
     container_name: home-ecosystem-plex
     environment:
       - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
@@ -86,59 +176,20 @@ services:
       - "32412:32412/udp"
       - "32413:32413/udp"
       - "32414:32414/udp"
-    restart: unless-stopped
-
-
-  #####################################################################################################################
-  # OpenSearch
-  #####################################################################################################################
-  opensearch:
-    image: opensearchproject/opensearch:2.14.0
-    container_name: home-ecosystem-opensearch
-    environment:
-      - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
-      - discovery.type=single-node
-      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
-      - bootstrap.memory_lock=true
-      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${HOME_ECOSYSTEM_OPENSEARCH_ADMIN_PASSWORD}
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    volumes:
-      - ${HOME_ECOSYSTEM_VAR_DIR:-.var}/opensearch/data:/usr/share/opensearch/data:rw
-    networks:
-      - common
-    ports:
-      - "9200:9200"
-      - "9600:9600"
-    restart: unless-stopped
-
-
-  #####################################################################################################################
-  # OpenSearch Dashboards
-  #####################################################################################################################
-  opensearch-dashboards:
-    image: opensearchproject/opensearch-dashboards:2.14.0
-    container_name: home-ecosystem-opensearch-dashboards
-    depends_on:
-      - opensearch
-    environment:
-      - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
-      - OPENSEARCH_HOSTS=https://home-ecosystem-opensearch:9200
-      - OPENSEARCH_USERNAME=admin
-      - OPENSEARCH_PASSWORD=${HOME_ECOSYSTEM_OPENSEARCH_ADMIN_PASSWORD}
-    ports:
-      - "5601:5601"
-    networks:
-      - common
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: home-ecosystem-plex
     restart: unless-stopped
 
   #####################################################################################################################
   # Nginx reverse proxy
   #####################################################################################################################
   nginx:
-    image: nginx:latest
+    # Use the command below to list available versions:
+    # curl -s "https://registry.hub.docker.com/v2/repositories/library/nginx/tags/?page_size=100" | jq -r '.results[].name' | sort -r
+    image: nginx:1.29.1
     container_name: home-ecosystem-nginx
     depends_on:
       - homebox
@@ -155,4 +206,9 @@ services:
       - common
     ports:
       - "80:80/tcp"
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: home-ecosystem-nginx
     restart: unless-stopped
