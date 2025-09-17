@@ -136,7 +136,7 @@ services:
       - "7745:7745/tcp"
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${HOME_ECOSYSTEM_VAR_DIR:-.var}/homebox/data:/var/lib/homebox:rw
+      - ${HOME_ECOSYSTEM_VAR_DIR:-.var}/homebox/data:/data:rw
     networks:
       - common
     logging:
@@ -199,6 +199,7 @@ services:
       - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
     volumes:
       - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/apps/homebox/nginx/homebox.conf:/etc/nginx/conf.d/homebox.conf:ro
+      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/apps/homebox/nginx/customization:/usr/share/nginx/homebox-customization:ro
       - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/apps/plex/nginx/plex.conf:/etc/nginx/conf.d/plex.conf:ro
       - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/apps/opensearch/nginx/opensearch.conf:/etc/nginx/conf.d/opensearch.conf:ro
       - ${HOME_ECOSYSTEM_VAR_DIR:-.var}/nginx/logs:/var/log/nginx:rw
