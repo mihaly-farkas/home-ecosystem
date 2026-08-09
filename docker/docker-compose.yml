@@ -28,6 +28,12 @@ services:
     ports:
       - "9200:9200"
       - "9600:9600"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -k -u admin:$$OPENSEARCH_INITIAL_ADMIN_PASSWORD https://localhost:9200/_cluster/health | grep -Eq '\"status\"[[:space:]]*:[[:space:]]*\"(green|yellow)\"'"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
     restart: unless-stopped
 
   #####################################################################################################################
@@ -36,10 +42,11 @@ services:
   fluentbit:
     # Use the command below to list available versions:
     # curl -s "https://registry.hub.docker.com/v2/repositories/fluent/fluent-bit/tags/?page_size=100" | jq -r '.results[].name' | sort -r
-    image: fluent/fluent-bit:4.2.8
+    image: fluent/fluent-bit:4.2.8-debug
     container_name: home-ecosystem-fluentbit
     depends_on:
-      - opensearch
+      opensearch:
+        condition: service_healthy
     environment:
       - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
       - OPENSEARCH_PASSWORD=${HOME_ECOSYSTEM_OPENSEARCH_ADMIN_PASSWORD}
@@ -51,6 +58,12 @@ services:
     ports:
       - "24224:24224"
       - "24224:24224/udp"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:2020/api/v1/health | jq -e '.[\"fluent-bit\"].version != null and .[\"fluent-bit\"].edition != null' >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
 
   #####################################################################################################################
@@ -62,17 +75,26 @@ services:
     image: opensearchproject/opensearch-dashboards:3.8.0
     container_name: home-ecosystem-opensearch-dashboards
     depends_on:
-      - fluentbit
-      - opensearch
+      fluentbit:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
     environment:
       - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
-      - OPENSEARCH_HOSTS=https://home-ecosystem-opensearch:9200
+      - OPENSEARCH_HOSTS=["https://opensearch:9200"]
       - OPENSEARCH_USERNAME=admin
       - OPENSEARCH_PASSWORD=${HOME_ECOSYSTEM_OPENSEARCH_ADMIN_PASSWORD}
+      - OPENSEARCH_SSL_VERIFICATIONMODE=none
     ports:
       - "5601:5601"
     networks:
       - common
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs -u \"$${OPENSEARCH_USERNAME}:$${OPENSEARCH_PASSWORD}\" http://localhost:5601/api/status | grep -Eq '\"state\"[[:space:]]*:[[:space:]]*\"green\"'"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 90s
     restart: unless-stopped
 
   #####################################################################################################################
@@ -84,7 +106,8 @@ services:
     image: postgres:17.9
     container_name: home-ecosystem-postgres
     depends_on:
-      - fluentbit
+      fluentbit:
+        condition: service_healthy
     environment:
       - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
       - POSTGRES_DB=${HOME_ECOSYSTEM_POSTGRES_DB_NAME:-postgres}
@@ -99,13 +122,14 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ${HOME_ECOSYSTEM_VAR_DIR:-.var}/postgres/data:/var/lib/postgresql/data:rw
       - ${HOME_ECOSYSTEM_TMP_DIR:-.tmp}/postgres-init:/docker-entrypoint-initdb.d:rw
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
       - common
-    logging:
-      driver: "fluentd"
-      options:
-        fluentd-address: localhost:24224
-        tag: home-ecosystem-postgres
     restart: unless-stopped
 
   #####################################################################################################################
@@ -117,7 +141,8 @@ services:
     image: sysadminsmedia/homebox:0.26.2
     container_name: home-ecosystem-homebox
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
       - HBOX_LOG_LEVEL=info
@@ -137,13 +162,14 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ${HOME_ECOSYSTEM_VAR_DIR:-.var}/homebox/data:/data:rw
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:7745/api/v1/status | grep -Eq '\"health\"[[:space:]]*:[[:space:]]*true'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
       - common
-    logging:
-      driver: "fluentd"
-      options:
-        fluentd-address: localhost:24224
-        tag: home-ecosystem-homebox
     restart: unless-stopped
 
   #####################################################################################################################
@@ -176,11 +202,12 @@ services:
       - "32412:32412/udp"
       - "32413:32413/udp"
       - "32414:32414/udp"
-    logging:
-      driver: "fluentd"
-      options:
-        fluentd-address: localhost:24224
-        tag: home-ecosystem-plex
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://127.0.0.1:32400/identity | grep -Eq '<MediaContainer .+version=\"[^\"]+\"'"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
     restart: unless-stopped
 
   #####################################################################################################################
@@ -192,9 +219,12 @@ services:
     image: nginx:1.31.3
     container_name: home-ecosystem-nginx
     depends_on:
-      - homebox
-      - plex
-      - opensearch-dashboards
+      homebox:
+        condition: service_healthy
+      plex:
+        condition: service_healthy
+      opensearch-dashboards:
+        condition: service_healthy
     environment:
       - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
     volumes:
@@ -207,9 +237,10 @@ services:
       - common
     ports:
       - "80:80/tcp"
-    logging:
-      driver: "fluentd"
-      options:
-        fluentd-address: localhost:24224
-        tag: home-ecosystem-nginx
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs -H 'Host: homebox.home.local' http://127.0.0.1/nginx-health | grep -qx 'ok'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     restart: unless-stopped
