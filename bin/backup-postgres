@@ -21,10 +21,10 @@ mkdir -p "$BACKUP_DIR"
 TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
 
 # Dump the PostgreSQL database schema
-OUTFILE="$BACKUP_DIR/pgdump.${TIMESTAMP}.${HOME_ECOSYSTEM_POSTGRES_DB}.schema.sql"
+OUTFILE="$BACKUP_DIR/pgdump.${TIMESTAMP}.${HOME_ECOSYSTEM_POSTGRES_DB_NAME}.schema.sql"
 docker exec -i home-ecosystem-postgres pg_dump \
-  --username="${HOME_ECOSYSTEM_POSTGRES_USER}" \
-  --dbname="${HOME_ECOSYSTEM_POSTGRES_DB}" \
+  --username="${HOME_ECOSYSTEM_POSTGRES_DB_USERNAME}" \
+  --dbname="${HOME_ECOSYSTEM_POSTGRES_DB_NAME}" \
   --format=plain \
   --no-owner \
   --no-privileges \
@@ -33,10 +33,10 @@ docker exec -i home-ecosystem-postgres pg_dump \
   > "$OUTFILE"
 
 # Dump the PostgreSQL database data
-OUTFILE="$BACKUP_DIR/pgdump.${TIMESTAMP}.${HOME_ECOSYSTEM_POSTGRES_DB}.data.sql"
+OUTFILE="$BACKUP_DIR/pgdump.${TIMESTAMP}.${HOME_ECOSYSTEM_POSTGRES_DB_NAME}.data.sql"
 docker exec -i home-ecosystem-postgres pg_dump \
-  --username="${HOME_ECOSYSTEM_POSTGRES_USER}" \
-  --dbname="${HOME_ECOSYSTEM_POSTGRES_DB}" \
+  --username="${HOME_ECOSYSTEM_POSTGRES_DB_USERNAME}" \
+  --dbname="${HOME_ECOSYSTEM_POSTGRES_DB_NAME}" \
   --format=plain \
   --no-owner \
   --no-privileges \
@@ -46,10 +46,10 @@ docker exec -i home-ecosystem-postgres pg_dump \
   > "$OUTFILE"
 
 # Dump the Homebox database schema
-OUTFILE="$BACKUP_DIR/pgdump.${TIMESTAMP}.${HOME_ECOSYSTEM_HOMEBOX_DB}.schema.sql"
+OUTFILE="$BACKUP_DIR/pgdump.${TIMESTAMP}.${HOME_ECOSYSTEM_HOMEBOX_DB_NAME}.schema.sql"
 docker exec -i home-ecosystem-postgres pg_dump \
-  --username="${HOME_ECOSYSTEM_POSTGRES_USER}" \
-  --dbname="${HOME_ECOSYSTEM_HOMEBOX_DB}" \
+  --username="${HOME_ECOSYSTEM_HOMEBOX_DB_USERNAME}" \
+  --dbname="${HOME_ECOSYSTEM_HOMEBOX_DB_NAME}" \
   --format=plain \
   --no-owner \
   --no-privileges \
@@ -58,10 +58,10 @@ docker exec -i home-ecosystem-postgres pg_dump \
   > "$OUTFILE"
 
 # Dump the Homebox database data
-OUTFILE="$BACKUP_DIR/pgdump.${TIMESTAMP}.${HOME_ECOSYSTEM_HOMEBOX_DB}.data.sql"
+OUTFILE="$BACKUP_DIR/pgdump.${TIMESTAMP}.${HOME_ECOSYSTEM_HOMEBOX_DB_NAME}.data.sql"
 docker exec -i home-ecosystem-postgres pg_dump \
-  --username="${HOME_ECOSYSTEM_POSTGRES_USER}" \
-  --dbname="${HOME_ECOSYSTEM_HOMEBOX_DB}" \
+  --username="${HOME_ECOSYSTEM_POSTGRES_DB_USERNAME}" \
+  --dbname="${HOME_ECOSYSTEM_HOMEBOX_DB_NAME}" \
   --format=plain \
   --no-owner \
   --no-privileges \

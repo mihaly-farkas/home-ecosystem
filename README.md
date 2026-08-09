@@ -93,7 +93,7 @@ flowchart LR
 2. Set up environment variables by copying the example file and then updating the values:
 
    ```bash
-   cp examples/.env .env
+   cp example/.env .env
    ```
 
    **Important:** You must edit `.env` before running the stack.

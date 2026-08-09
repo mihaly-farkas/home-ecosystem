@@ -25,6 +25,9 @@ mkdir -p "${HOME_ECOSYSTEM_VAR_DIR}/postgres/data"
 mkdir -p "${HOME_ECOSYSTEM_VAR_DIR}/homebox/data"
 mkdir -p "${HOME_ECOSYSTEM_TMP_DIR}/postgres-init"
 
+# Stage init scripts into the temporary init directory to avoid nested bind mounts.
+cp "${HOME_ECOSYSTEM_PROJECT_DIR}/app/homebox/postgres-init/homebox.sh" "${HOME_ECOSYSTEM_TMP_DIR}/postgres-init/homebox.sh"
+
 # Create directories for Plex
 mkdir -p "${HOME_ECOSYSTEM_PLEX_MEDIA_DIR}"
 mkdir -p "${HOME_ECOSYSTEM_VAR_DIR}/plex/config"
@@ -38,7 +41,8 @@ mkdir -p "${HOME_ECOSYSTEM_VAR_DIR}/nginx/logs"
 
 # Set execute permissions on scripts
 chmod +x "${HOME_ECOSYSTEM_PROJECT_DIR}/bin/"*
-chmod +x "${HOME_ECOSYSTEM_PROJECT_DIR}/apps/homebox/postgres-init/homebox.sh"
+chmod +x "${HOME_ECOSYSTEM_PROJECT_DIR}/app/homebox/postgres-init/homebox.sh"
+chmod +x "${HOME_ECOSYSTEM_TMP_DIR}/postgres-init/homebox.sh"
 
 # Start the Docker containers
 set -x

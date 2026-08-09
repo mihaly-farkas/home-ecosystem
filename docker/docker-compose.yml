@@ -44,8 +44,8 @@ services:
       - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
       - OPENSEARCH_PASSWORD=${HOME_ECOSYSTEM_OPENSEARCH_ADMIN_PASSWORD}
     volumes:
-      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/apps/fluentbit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
-      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/apps/fluentbit/scripts:/fluent-bit/etc/scripts:ro
+      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/app/fluentbit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
+      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/app/fluentbit/scripts:/fluent-bit/etc/scripts:ro
     networks:
       - common
     ports:
@@ -87,10 +87,10 @@ services:
       - fluentbit
     environment:
       - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
-      - POSTGRES_DB=${HOME_ECOSYSTEM_POSTGRES_DB:-postgres}
-      - POSTGRES_USER=${HOME_ECOSYSTEM_POSTGRES_USER:-home_ecosystem}
-      - POSTGRES_PASSWORD=${HOME_ECOSYSTEM_POSTGRES_PASSWORD:-CHANGE ME!!!}
-      - HOMEBOX_DB=${HOME_ECOSYSTEM_HOMEBOX_DB:-homebox}
+      - POSTGRES_DB=${HOME_ECOSYSTEM_POSTGRES_DB_NAME:-postgres}
+      - POSTGRES_USER=${HOME_ECOSYSTEM_POSTGRES_DB_USERNAME:-home_ecosystem}
+      - POSTGRES_PASSWORD=${HOME_ECOSYSTEM_POSTGRES_DB_PASSWORD:-CHANGE ME!!!}
+      - HOMEBOX_DB=${HOME_ECOSYSTEM_HOMEBOX_DB_NAME:-homebox}
       - HOMEBOX_USER=${HOME_ECOSYSTEM_HOMEBOX_DB_USERNAME:-homebox}
       - HOMEBOX_PASSWORD=${HOME_ECOSYSTEM_HOMEBOX_DB_PASSWORD:-CHANGE ME!!!}
     ports:
@@ -99,7 +99,6 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ${HOME_ECOSYSTEM_VAR_DIR:-.var}/postgres/data:/var/lib/postgresql/data:rw
       - ${HOME_ECOSYSTEM_TMP_DIR:-.tmp}/postgres-init:/docker-entrypoint-initdb.d:rw
-      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/apps/homebox/postgres-init/homebox.sh:/docker-entrypoint-initdb.d/homebox.sh
     networks:
       - common
     logging:
@@ -125,11 +124,12 @@ services:
       - HBOX_LOG_FORMAT=text
       - HBOX_WEB_MAX_FILE_UPLOAD=10
       - HBOX_OPTIONS_ALLOW_ANALYTICS=${HOME_ECOSYSTEM_HOMEBOX_ALLOW_ANALYTICS:-false}
+      - HBOX_AUTH_API_KEY_PEPPER=${HOME_ECOSYSTEM_HOMEBOX_API_KEY_PEPPER}
       - HBOX_DATABASE_DRIVER=postgres
       - HBOX_DATABASE_HOST=home-ecosystem-postgres
       - HBOX_DATABASE_PORT=5432
       - HBOX_DATABASE_DATABASE=${HOME_ECOSYSTEM_HOMEBOX_DB:-homebox}
-      - HBOX_DATABASE_USERNAME=${HOME_ECOSYSTEM_HOMEBOX_DB_USERNAME:-homebox}
+      - HBOX_DATABASE_USERNAME=${HOME_ECOSYSTEM_HOMEBOX_USER:-homebox}
       - HBOX_DATABASE_PASSWORD=${HOME_ECOSYSTEM_HOMEBOX_DB_PASSWORD:-CHANGE ME!!!}
       - HBOX_DATABASE_SSL_MODE=disable
     ports:
@@ -198,10 +198,10 @@ services:
     environment:
       - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
     volumes:
-      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/apps/homebox/nginx/homebox.conf:/etc/nginx/conf.d/homebox.conf:ro
-      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/apps/homebox/nginx/customization:/usr/share/nginx/homebox-customization:ro
-      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/apps/plex/nginx/plex.conf:/etc/nginx/conf.d/plex.conf:ro
-      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/apps/opensearch/nginx/opensearch.conf:/etc/nginx/conf.d/opensearch.conf:ro
+      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/app/homebox/nginx/homebox.conf:/etc/nginx/conf.d/homebox.conf:ro
+      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/app/homebox/nginx/customization:/usr/share/nginx/homebox-customization:ro
+      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/app/plex/nginx/plex.conf:/etc/nginx/conf.d/plex.conf:ro
+      - ${HOME_ECOSYSTEM_PROJECT_DIR:-.}/app/opensearch/nginx/opensearch.conf:/etc/nginx/conf.d/opensearch.conf:ro
       - ${HOME_ECOSYSTEM_VAR_DIR:-.var}/nginx/logs:/var/log/nginx:rw
     networks:
       - common
