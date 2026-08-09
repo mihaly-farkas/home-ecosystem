@@ -9,7 +9,7 @@ services:
   opensearch:
     # Use the command below to list available versions:
     # curl -s "https://registry.hub.docker.com/v2/repositories/opensearchproject/opensearch/tags/?page_size=100" | jq -r '.results[].name' | sort -r
-    image: opensearchproject/opensearch:3.2.0
+    image: opensearchproject/opensearch:3.8.0
     container_name: home-ecosystem-opensearch
     environment:
       - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
@@ -36,7 +36,7 @@ services:
   fluentbit:
     # Use the command below to list available versions:
     # curl -s "https://registry.hub.docker.com/v2/repositories/fluent/fluent-bit/tags/?page_size=100" | jq -r '.results[].name' | sort -r
-    image: fluent/fluent-bit:4.0.9
+    image: fluent/fluent-bit:4.2.8
     container_name: home-ecosystem-fluentbit
     depends_on:
       - opensearch
@@ -59,7 +59,7 @@ services:
   opensearch-dashboards:
     # Use the command below to list available versions:
     # curl -s "https://registry.hub.docker.com/v2/repositories/opensearchproject/opensearch-dashboards/tags/?page_size=100" | jq -r '.results[].name' | sort -r
-    image: opensearchproject/opensearch-dashboards:3.2.0
+    image: opensearchproject/opensearch-dashboards:3.8.0
     container_name: home-ecosystem-opensearch-dashboards
     depends_on:
       - fluentbit
@@ -81,14 +81,14 @@ services:
   postgres:
     # Use the command below to list available versions:
     # curl -s "https://registry.hub.docker.com/v2/repositories/library/postgres/tags/?page_size=100" | jq -r '.results[].name' |  sort -r
-    image: postgres:17.6
+    image: postgres:17.9
     container_name: home-ecosystem-postgres
     depends_on:
       - fluentbit
     environment:
       - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
       - POSTGRES_DB=${HOME_ECOSYSTEM_POSTGRES_DB:-postgres}
-      - POSTGRES_USER=${HOME_ECOSYSTEM_POSTGRES_USERNAME:-home_ecosystem}
+      - POSTGRES_USER=${HOME_ECOSYSTEM_POSTGRES_USER:-home_ecosystem}
       - POSTGRES_PASSWORD=${HOME_ECOSYSTEM_POSTGRES_PASSWORD:-CHANGE ME!!!}
       - HOMEBOX_DB=${HOME_ECOSYSTEM_HOMEBOX_DB:-homebox}
       - HOMEBOX_USER=${HOME_ECOSYSTEM_HOMEBOX_DB_USERNAME:-homebox}
@@ -115,7 +115,7 @@ services:
   homebox:
     # Use the command below to list available versions:
     # curl -s "https://registry.hub.docker.com/v2/repositories/sysadminsmedia/homebox/tags/?page_size=100" | jq -r '.results[].name' | sort -r
-    image: sysadminsmedia/homebox:0.21.0
+    image: sysadminsmedia/homebox:0.26.2
     container_name: home-ecosystem-homebox
     depends_on:
       - postgres
@@ -152,7 +152,7 @@ services:
   plex:
     # Use the command below to list available versions:
     # curl -s "https://registry.hub.docker.com/v2/repositories/linuxserver/plex/tags/?page_size=100" | jq -r '.results[].name' | sort -r
-    image: linuxserver/plex:1.41.9
+    image: linuxserver/plex:1.43.3
     container_name: home-ecosystem-plex
     environment:
       - TZ=${HOME_ECOSYSTEM_TIMEZONE:-UTC}
@@ -189,7 +189,7 @@ services:
   nginx:
     # Use the command below to list available versions:
     # curl -s "https://registry.hub.docker.com/v2/repositories/library/nginx/tags/?page_size=100" | jq -r '.results[].name' | sort -r
-    image: nginx:1.29.1
+    image: nginx:1.31.3
     container_name: home-ecosystem-nginx
     depends_on:
       - homebox
