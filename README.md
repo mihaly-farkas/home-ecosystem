@@ -17,6 +17,7 @@ This project is a personal hobby setup created for my own home environment. It i
 - [PostgreSQL](https://www.postgresql.org) – A robust relational database for HomeBox and other applications.
 - [FluentBit](https://fluentbit.io) – Collects Docker container logs and forwards them to OpenSearch for centralized log management.
 - [nginx](https://www.nginx.com) – An HTTP server acting as a reverse proxy to route traffic to the applications running on different ports based on the requested local domain (e.g., `homebox.home.local`, `plex.home.local`).
+- [Playwright](https://playwright.dev) – End-to-end testing to ensure the applications are running correctly.
 
 ## 🎯 Coming Soon...
 
@@ -69,7 +70,6 @@ flowchart LR
 
     webBrowser["<i>«external»</i><br><h3>Web Browser</h3><hr/>User's web browser"]:::external
     webBrowser -->|" accesses web applications through "| reverseProxy
-    
     user["<i>«actor»</i><br><h3>User</h3><hr/>End user interacting with the system"]:::actor
     user -->|" uses "| webBrowser
 ```
@@ -96,10 +96,9 @@ flowchart LR
    cp example/.env .env
    ```
 
-   **Important:** You must edit `.env` before running the stack.
-   Replace all placeholder values, especially:
-   - `/PATH/TO/...` paths (project, config, var, and media directories)
-   - `GENERATE_A_STRONG_PASSWORD_HERE_*` passwords
+   **Important:** You must edit `.env` before running the stack. Replace all placeholder values, especially:
+    - `/PATH/TO/...` paths (project, config, var, and media directories)
+    - `GENERATE_A_STRONG_PASSWORD_HERE_*` passwords
 
    Be aware that Plex requires a temporary claim token for the initial setup. See the instructions in the `.env` file comments.
 

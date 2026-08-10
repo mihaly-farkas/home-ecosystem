@@ -1,0 +1,32 @@
+{
+  "name": "@mihaly-farkas/home-ecosystem-e2e",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx playwright test",
+    "eslint": "eslint . --ext .ts",
+    "eslint:fix": "npm run eslint -- --fix",
+    "prettier": "prettier --check .",
+    "prettier:fix": "prettier --write .",
+    "dependency-management:show-major-updates": "npx npm-check-updates",
+    "dependency-management:show-minor-updates": "npx npm-check-updates --target semver",
+    "dependency-management:update-minor-dependencies": "npx npm-check-updates --target minor --upgrade && npm install"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.62.1",
+    "@types/node": "26.2.0",
+    "dotenv": "17.4.2",
+    "eslint": "10.8.1",
+    "globals": "17.9.0",
+    "npm-check-updates": "23.0.2",
+    "prettier": "3.9.6",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.66.0"
+  }
+}
